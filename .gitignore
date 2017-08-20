@@ -1,0 +1,8 @@
+# qt resource file
+*.qrc
+
+# qt compile files
+*.qmlc
+
+# user config files
+*.user
