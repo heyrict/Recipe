@@ -1,7 +1,20 @@
 #include "recipemodel.h"
 
-RecipeModel::RecipeModel(QObject* parent) : QAbstractListModel(parent)
+RecipeModel::RecipeModel(QString sTitle, QObject* parent) : QAbstractListModel(parent)
 {
+    m_title = sTitle;
+    m_rate = 1;
+}
+
+void RecipeModel::setTitle(QString title)
+{
+    m_title = title;
+    emit titleChanged();
+}
+
+QString RecipeModel::title()
+{
+    return m_title;
 }
 
 QHash<int, QByteArray> RecipeModel::roleNames() const
@@ -26,11 +39,23 @@ QVariant RecipeModel::data(const QModelIndex &index, int role) const
     RecipeElement* curElement = m_elements[index.row()];
     if (role == NameRole)  return QVariant(curElement->compName());
     else if (role == CalcMtdRole)  return QVariant(curElement->calcMtd());
-    else if (role == QuantityRole)  return QVariant(curElement->quantity());
+    else if (role == QuantityRole)
+    {
+        return QVariant(curElement->quantity() * m_rate);
+    }
     else return QVariant();
 }
 
 int RecipeModel::addElement(RecipeElement* element)
 {
     m_elements.append(element);
+}
+
+void RecipeModel::updateModel(double rate)
+{
+    if (rate < 0 || rate > 1000)  return;
+
+    m_rate *= rate;
+    emit layoutAboutToBeChanged();
+    emit layoutChanged();
 }

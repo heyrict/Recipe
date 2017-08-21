@@ -11,7 +11,7 @@ Window {
         id: root
         anchors.fill: parent
         property int transTime: 300
-        state: "sidebarInvisible"
+        state: "sidebarOnly"
 
         states: [
             State {
@@ -96,7 +96,7 @@ Window {
             }
 
             ListView {
-                id: contentsList
+                id: recipeList
                 anchors {
                     left: parent.left
                     top: contentsBanner.bottom
@@ -107,38 +107,6 @@ Window {
                 topMargin: 30
                 model: recipeModel
                 delegate: recipeDelegate
-            }
-
-            Component {
-                id: recipeDelegate
-                Row {
-                    property int fontsize: 18
-                    property int rectWidth: contentsList.width / 2
-
-                    topPadding: fontsize
-
-                    Rectangle {
-                        Text{
-                            text: compName
-                            anchors.centerIn: parent
-                            font.pixelSize: fontsize
-                        }
-                        height: fontsize*2
-                        width: rectWidth
-                    }
-
-                    Rectangle {
-                        TextInput {
-                            text: quantity
-                            font.underline: true
-                            anchors.centerIn: parent
-                            font.pixelSize: fontsize
-                            onAccepted: { recipeModel.updateModel(Number(text)/quantity,calcMtd)}
-                        }
-                        height: fontsize*2
-                        width: rectWidth
-                    }
-                }
             }
 
         }
@@ -162,7 +130,7 @@ Window {
 
         Rectangle {
             id: sidebar
-            color: "#3f6456"
+            color: "#5fb4a6"
             anchors {
                 left: parent.left
                 top: parent.top
@@ -175,7 +143,88 @@ Window {
             }
 
             Behavior on width { NumberAnimation { duration: root.transTime}}
+
+            ListView {
+                id: recipeTitleList
+                width: root.width
+                anchors.fill: parent
+                model: recipeTitleModel
+                delegate: recipeTitleDelegate
+                topMargin: 50
+
+            }
         }
 
     }
+
+    Component {
+        id: recipeTitleDelegate
+        Row {
+            property int fontsize: 18
+            property int rectWidth: recipeTitleList.width
+            property var colorPalette: Gradient {
+                GradientStop { position: 0; color: "#ccccee"}
+                GradientStop { position: 1; color: "#aaaaee"}
+            }
+
+            leftPadding: rectWidth * 0.05
+            rightPadding: rectWidth * 0.05
+
+            Rectangle {
+                width: rectWidth * 0.9
+                height: fontsize * 2
+                color: "lightcyan"
+                gradient: colorPalette
+                radius: fontsize
+                Text {
+                    anchors.centerIn: parent
+                    text: title
+                    font.pixelSize: fontsize
+                }
+            }
+        }
+    }
+
+    Component {
+        id: recipeDelegate
+        Row {
+            property int fontsize: 18
+            property int rectWidth: recipeList.width / 2
+            property var colorPalette: Gradient {
+                GradientStop { position: 0; color: "#eeee04"}
+                GradientStop { position: 1; color: "#ddcc00"}
+            }
+
+            topPadding: fontsize
+
+            Rectangle {
+                gradient: colorPalette
+                Text{
+                    text: compName
+                    anchors.centerIn: parent
+                    font.pixelSize: fontsize
+                }
+                height: fontsize*2
+                width: rectWidth
+            }
+
+            Rectangle {
+                gradient: colorPalette
+                TextInput {
+                    text: quantity
+                    font.underline: true
+                    anchors.centerIn: parent
+                    font.pixelSize: fontsize
+                    onEditingFinished: {
+                        var rate = Number(text)/quantity
+                        if (rate > 0 && rate < 100)
+                            recipeModel.updateModel(rate,calcMtd)
+                    }
+                }
+                height: fontsize*2
+                width: rectWidth
+            }
+        }
+    }
+
 }

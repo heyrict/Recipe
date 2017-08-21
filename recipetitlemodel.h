@@ -3,6 +3,7 @@
 
 #include <QObject>
 #include <QAbstractListModel>
+#include "recipemodel.h"
 
 class RecipeTitleModel : public QAbstractListModel
 {
@@ -14,6 +15,15 @@ public:
 
     RecipeTitleModel();
     QHash<int, QByteArray> roleNames() const;
+    int rowCount(const QModelIndex &parent) const;
+    QVariant data(const QModelIndex &index, int role) const;
+
+public slots:
+    void newRecipeModel();
+
+private:
+    QList<RecipeModel*> m_recipeModels;
+
 };
 
 #endif // RECIPETITLEMODEL_H
