@@ -10,7 +10,8 @@ class RecipeTitleModel : public QAbstractListModel
     Q_OBJECT
 public:
     enum RecipeTitleRoles {
-        TitleRole = Qt::UserRole + 1
+        TitleRole = Qt::UserRole + 1,
+        ModelRole
     };
 
     RecipeTitleModel();

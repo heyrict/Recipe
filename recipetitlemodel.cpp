@@ -9,6 +9,7 @@ QHash<int, QByteArray> RecipeTitleModel::roleNames() const
 {
     QHash<int, QByteArray>roles;
     roles[TitleRole] = "title";
+    roles[ModelRole] = "recipeModel";
     return roles;
 }
 
@@ -19,6 +20,8 @@ QVariant RecipeTitleModel::data(const QModelIndex &index, int role) const
 
     if (role == TitleRole)
         return (m_recipeModels[index.row()])->title();
+    else if (role == ModelRole)
+        return QVariant::fromValue(m_recipeModels[index.row()]);
     else
         return QVariant();
 }

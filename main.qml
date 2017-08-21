@@ -70,7 +70,7 @@ Window {
                     left: parent.left
                     right: parent.right
                 }
-                height: 40
+                height: root.height / 10
                 color: "#779077"
                 gradient: Gradient {
                     GradientStop { position: 0; color: Qt.lighter(contentsBanner.color)}
@@ -105,7 +105,6 @@ Window {
                 }
 
                 topMargin: 30
-                model: recipeModel
                 delegate: recipeDelegate
             }
 
@@ -160,7 +159,7 @@ Window {
     Component {
         id: recipeTitleDelegate
         Row {
-            property int fontsize: 18
+            property int fontsize: root.height / 20
             property int rectWidth: recipeTitleList.width
             property var colorPalette: Gradient {
                 GradientStop { position: 0; color: "#ccccee"}
@@ -179,7 +178,16 @@ Window {
                 Text {
                     anchors.centerIn: parent
                     text: title
-                    font.pixelSize: fontsize
+                    //font.pixelSize: fontsize
+                    font.pixelSize: parent.width<fontsize*title.length?parent.width/title.length:fontsize
+                    visible: parent.width < 5 ? false : true
+                }
+                MouseArea {
+                    anchors.fill: parent
+                    onClicked: {
+                        recipeList.model = recipeModel
+                        root.state = "sidebarInvisible"
+                    }
                 }
             }
         }
@@ -188,7 +196,7 @@ Window {
     Component {
         id: recipeDelegate
         Row {
-            property int fontsize: 18
+            property int fontsize: root.height / 20
             property int rectWidth: recipeList.width / 2
             property var colorPalette: Gradient {
                 GradientStop { position: 0; color: "#eeee04"}
@@ -218,7 +226,7 @@ Window {
                     onEditingFinished: {
                         var rate = Number(text)/quantity
                         if (rate > 0 && rate < 100)
-                            recipeModel.updateModel(rate,calcMtd)
+                            recipeList.model.updateModel(rate,calcMtd)
                     }
                 }
                 height: fontsize*2
