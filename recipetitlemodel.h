@@ -3,6 +3,9 @@
 
 #include <QObject>
 #include <QAbstractListModel>
+#include <QFile>
+#include <QDataStream>
+#include <QIODevice>
 #include "recipemodel.h"
 
 class RecipeTitleModel : public QAbstractListModel
@@ -18,9 +21,13 @@ public:
     QHash<int, QByteArray> roleNames() const;
     int rowCount(const QModelIndex &parent) const;
     QVariant data(const QModelIndex &index, int role) const;
+    bool load();
 
 public slots:
-    void newRecipeModel();
+    void newRecipeModel(QString title = "New Recipe");
+    void deleteRecipeModel(int index);
+    void refresh();
+    void save();
 
 private:
     QList<RecipeModel*> m_recipeModels;

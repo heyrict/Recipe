@@ -1,4 +1,10 @@
 #include "recipetitlemodel.h"
+#define STARTRECIPE (quint32)0x33641E91
+#define ENDRECIPE (quint32)0x128E841B
+#define STARTMODEL (quint32)0x1384A99E
+#define ENDMODEL (quint32)0x5B88C5B8
+#define STARTELEMENT (quint32)0xAA8A4064
+#define ENDELEMENT (quint32)0xE2515C60
 
 RecipeTitleModel::RecipeTitleModel()
 {
@@ -31,14 +37,71 @@ int RecipeTitleModel::rowCount(const QModelIndex &parent) const
     return m_recipeModels.length();
 }
 
-void RecipeTitleModel::newRecipeModel()
+void RecipeTitleModel::newRecipeModel(QString title)
 {
     RecipeModel* recipeModel = new RecipeModel("New Recipe");
-    recipeModel->addElement(new RecipeElement("RATE",1));
-    recipeModel->addElement(new RecipeElement("size",8,"^2"));
-    recipeModel->addElement(new RecipeElement("powder",500));
-    recipeModel->addElement(new RecipeElement("butter",100));
 
     m_recipeModels.append(recipeModel);
     emit layoutChanged();
+}
+
+void RecipeTitleModel::refresh()
+{
+    emit layoutChanged();
+}
+
+void RecipeTitleModel::deleteRecipeModel(int index)
+{
+    if (index < 0 || index > m_recipeModels.length())
+        return;
+
+    emit layoutAboutToBeChanged();
+    m_recipeModels.removeAt(index);
+    emit layoutChanged();
+}
+
+void RecipeTitleModel::save()
+{
+    QFile file("Recipies.dat");
+    file.open(QIODevice::WriteOnly);
+    QDataStream out(&file);
+    out << STARTMODEL;
+    for (RecipeModel* i : m_recipeModels)
+    {
+        out << STARTRECIPE;
+        out << i->title();
+        out << STARTELEMENT;
+        for (RecipeElement *j : i->m_elements)
+            out << j->compName() << j->quantity() << j->calcMtd();
+        out << ENDELEMENT;
+    }
+    out << ENDMODEL;
+}
+
+bool RecipeTitleModel::load()
+{
+    QFile file("Recipies.dat");
+    if (!file.exists()) return false;
+    file.open(QIODevice::ReadOnly);
+    QDataStream in(&file);
+
+    quint32 serial, recipeSerial, elementSerial;
+    QString title, compName, calcMtd;
+    double quantity;
+
+    in >> serial;
+    while (serial != ENDMODEL)
+    {
+        in >> recipeSerial;
+        while (recipeSerial != ENDRECIPE)
+        {
+            in >> title;
+            in >> elementSerial;
+            while (elementSerial != ENDELEMENT)
+            {
+                in >> compName >> quantity >> calcMtd;
+                this->newRecipeModel();
+            }
+        }
+    }
 }

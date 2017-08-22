@@ -47,14 +47,38 @@ QVariant RecipeModel::data(const QModelIndex &index, int role) const
 
 int RecipeModel::addElement(RecipeElement* element)
 {
+    emit layoutAboutToBeChanged();
     m_elements.append(element);
+    emit layoutChanged();
 }
 
 void RecipeModel::updateModel(double rate)
 {
     if (rate < 0 || rate > 1000)  return;
 
-    m_rate *= rate;
+    m_rate = rate;
     emit layoutAboutToBeChanged();
+    emit layoutChanged();
+}
+
+void RecipeModel::removeElement(int row)
+{
+    if (row < 0 || row > m_elements.length())
+        return;
+
+    emit layoutAboutToBeChanged();
+    m_elements.removeAt(row);
+    emit layoutChanged();
+}
+
+void RecipeModel::updateElement(int row, QString compName, double quantity, QString calcMtd)
+{
+    if (row < 0 || row > m_elements.length())
+        return;
+
+    emit layoutAboutToBeChanged();
+    m_elements[row]->setCompName(compName);
+    m_elements[row]->setQuantity(quantity);
+    m_elements[row]->setCalcMtd(calcMtd);
     emit layoutChanged();
 }

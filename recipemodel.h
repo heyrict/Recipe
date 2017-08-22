@@ -21,9 +21,13 @@ public:
     RecipeModel(QString sTitle = "New Recipe", QObject* parent=nullptr);
     int rowCount(const QModelIndex &parent) const;
     QVariant data(const QModelIndex &index, int role) const;
-    int addElement(RecipeElement* element);
+
+    QList<RecipeElement*> m_elements;
 
 public slots:
+    int addElement(RecipeElement* element = new RecipeElement("Component",1,"x1"));
+    void updateElement(int row, QString compName, double quantity, QString calcMtd = tr("x1"));
+    void removeElement(int row);
     void updateModel(double rate);
     void setTitle(QString title);
     QString title();
@@ -33,7 +37,6 @@ signals:
 
 private:
     QString m_title;
-    QList<RecipeElement*> m_elements;
     double m_rate;
 };
 

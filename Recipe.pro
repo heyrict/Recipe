@@ -38,4 +38,5 @@ HEADERS += \
     recipetitlemodel.h
 
 DISTFILES += \
-    ../common/FlickableMouseArea.qml
+    ../common/FlickableMouseArea.qml \
+    ../common/LabeledTextInput.qml
