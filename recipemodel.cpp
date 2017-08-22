@@ -23,6 +23,7 @@ QHash<int, QByteArray> RecipeModel::roleNames() const
     roles[NameRole] = "compName";
     roles[QuantityRole] = "quantity";
     roles[CalcMtdRole] = "calcMtd";
+    roles[RateRole] = "rate";
     return roles;
 }
 
@@ -39,10 +40,8 @@ QVariant RecipeModel::data(const QModelIndex &index, int role) const
     RecipeElement* curElement = m_elements[index.row()];
     if (role == NameRole)  return QVariant(curElement->compName());
     else if (role == CalcMtdRole)  return QVariant(curElement->calcMtd());
-    else if (role == QuantityRole)
-    {
-        return QVariant(curElement->quantity() * m_rate);
-    }
+    else if (role == QuantityRole) return QVariant(curElement->quantity());
+    else if (role == RateRole) return QVariant(m_rate);
     else return QVariant();
 }
 

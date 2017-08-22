@@ -33,7 +33,7 @@ int RecipeTitleModel::rowCount(const QModelIndex &parent) const
 
 void RecipeTitleModel::newRecipeModel()
 {
-    RecipeModel* recipeModel = new RecipeModel("NewRecipe");
+    RecipeModel* recipeModel = new RecipeModel("New Recipe");
     recipeModel->addElement(new RecipeElement("RATE",1));
     recipeModel->addElement(new RecipeElement("size",8,"^2"));
     recipeModel->addElement(new RecipeElement("powder",500));

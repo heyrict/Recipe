@@ -36,3 +36,6 @@ HEADERS += \
     recipeelement.h \
     recipemodel.h \
     recipetitlemodel.h
+
+DISTFILES += \
+    ../common/FlickableMouseArea.qml

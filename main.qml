@@ -1,5 +1,6 @@
 import QtQuick 2.6
 import QtQuick.Window 2.2
+import "common"
 
 Window {
     visible: true
@@ -11,6 +12,7 @@ Window {
         id: root
         anchors.fill: parent
         property int transTime: 300
+        property int generalLength: height / 10
         state: "sidebarOnly"
 
         states: [
@@ -76,10 +78,35 @@ Window {
                     GradientStop { position: 0; color: Qt.lighter(contentsBanner.color)}
                     GradientStop { position: 1; color: contentsBanner.color}
                 }
+                state: "normalContents"
+                states: [
+                    State {
+                        name: "editContents"
+                        PropertyChanges {
+                            target: contentsToolbar
+                            visible: false
+                        }
+                        PropertyChanges {
+                            target: contentsEditToolbar
+                            visible: true
+                        }
+                    },
+                    State {
+                        name: "normalContents"
+                        PropertyChanges {
+                            target: contentsToolbar
+                            visible: true
+                        }
+                        PropertyChanges {
+                            target: contentsEditToolbar
+                            visible: false
+                        }
+                    }
+                ]
 
                 Image {
                     id: menuIcon
-                    source: "components/icons/menu.svg"
+                    source: "components/icons/menu.png"
                     anchors {
                         left: parent.left
                         top: parent.top
@@ -93,15 +120,90 @@ Window {
                     }
                     Behavior on opacity { NumberAnimation { duration: root.transTime }}
                 }
+
+                Row {
+                    id: contentsToolbar
+                    layoutDirection: Qt.RightToLeft
+                    visible: true
+                    anchors {
+                        right: parent.right
+                        top: parent.top
+                        bottom: parent.bottom
+                    }
+
+                    Image {
+                        id: editRecipe
+                        source: "components/icons/edit.png"
+                        height: parent.height
+                        width: height
+                        MouseArea {
+                            anchors.fill: parent
+                            onClicked: {
+                                contentsBanner.state = "editContents"
+                            }
+                        }
+                    }
+                }
+
+                Row {
+                    id: contentsEditToolbar
+                    layoutDirection: Qt.RightToLeft
+                    visible: false
+                    anchors {
+                        right: parent.right
+                        top: parent.top
+                        bottom: parent.bottom
+                    }
+                    padding: height * 0.1
+                    spacing: height * 0.15
+                    Image {
+                        id: deleteEditRecipe
+                        source: "components/icons/delete.png"
+                        height: parent.height * 0.8
+                        width: height
+                    }
+                    Image {
+                        id: cancelEditRecipe
+                        source: "components/icons/cancel.png"
+                        height: parent.height * 0.8
+                        width: height
+                    }
+                    Image {
+                        id: confirmEditRecipe
+                        source: "components/icons/confirm.png"
+                        height: parent.height * 0.8
+                        width: height
+                    }
+                    Image {
+                        id: plusEditRecipe
+                        source: "components/icons/plus.png"
+                        height: parent.height * 0.8
+                        width: height
+                    }
+                }
             }
 
             ListView {
                 id: recipeList
+                clip: true
                 anchors {
                     left: parent.left
                     top: contentsBanner.bottom
                     bottom: parent.bottom
                     right: parent.right
+                }
+
+                header: Rectangle {
+                    anchors {
+                        left: parent.left
+                        right: parent.right
+                    }
+                    height: root.generalLength
+                    color: "#00000000"
+                    Text {
+                        text: recipeList.model.title
+                        font.pixelSize: root.generalLength * 0.9
+                    }
                 }
 
                 topMargin: 30
@@ -145,15 +247,54 @@ Window {
 
             ListView {
                 id: recipeTitleList
+                clip: true
                 width: root.width
-                anchors.fill: parent
+                anchors {
+                    left: parent.left
+                    right: parent.right
+                    top: parent.top
+                    bottom: sideToolbar.top
+                }
                 model: recipeTitleModel
                 delegate: recipeTitleDelegate
-                topMargin: 50
+                topMargin: 30
+                spacing: 15
+            }
 
+            Rectangle {
+                id: sideToolbar
+                height: parent.height / 10
+                width: parent.height / 10
+                anchors {
+                    left: parent.left
+                    bottom: parent.bottom
+                    right: parent.right
+                }
+                gradient: Gradient {
+                    GradientStop { position: 0; color: Qt.lighter("#633314",2)}
+                    GradientStop { position: 1; color: "#633314"}
+                }
+
+                Row {
+                    anchors.fill: parent
+                    spacing: height * 0.2
+                    padding: height * 0.05
+                    Image {
+                        id: addRecipe
+                        source: "components/icons/add.png"
+                        height: Math.min(sideToolbar.height,sideToolbar.width) * 0.9
+                        width: height
+                        MouseArea {
+                            anchors.fill: parent
+                            onClicked: {
+                                root.state = "sidebarOnly"
+                                recipeTitleModel.newRecipeModel()
+                            }
+                        }
+                    }
+                }
             }
         }
-
     }
 
     Component {
@@ -175,18 +316,27 @@ Window {
                 color: "lightcyan"
                 gradient: colorPalette
                 radius: fontsize
-                Text {
+                TextInput {
+                    id: recipeTitleDelegateText
                     anchors.centerIn: parent
                     text: title
                     //font.pixelSize: fontsize
                     font.pixelSize: parent.width<fontsize*title.length?parent.width/title.length:fontsize
                     visible: parent.width < 5 ? false : true
+                    onEditingFinished: {
+                        focus = false
+                        recipeModel.title = text
+                    }
                 }
-                MouseArea {
+                FlickableMouseArea {
                     anchors.fill: parent
-                    onClicked: {
+                    onShortPressed: {
                         recipeList.model = recipeModel
                         root.state = "sidebarInvisible"
+                    }
+                    onLongPressed: {
+                        recipeTitleDelegateText.selectAll()
+                        recipeTitleDelegateText.forceActiveFocus()
                     }
                 }
             }
@@ -196,43 +346,80 @@ Window {
     Component {
         id: recipeDelegate
         Row {
+            id: recipeDelegateRow
             property int fontsize: root.height / 20
             property int rectWidth: recipeList.width / 2
             property var colorPalette: Gradient {
                 GradientStop { position: 0; color: "#eeee04"}
                 GradientStop { position: 1; color: "#ddcc00"}
             }
+            Behavior on rectWidth { NumberAnimation { duration: root.transTime}}
 
             topPadding: fontsize
 
             Rectangle {
-                gradient: colorPalette
-                Text{
-                    text: compName
-                    anchors.centerIn: parent
-                    font.pixelSize: fontsize
+                height: fontsize * 2
+                width: rectWidth * 2
+                Rectangle {
+                    gradient: colorPalette
+                    anchors {
+                        left: parent.left
+                        top: parent.top
+                        bottom: parent.bottom
+                    }
+
+                    Text{
+                        text: compName
+                        anchors.centerIn: parent
+                        font.pixelSize: fontsize
+                    }
+                    height: fontsize*2
+                    width: rectWidth
                 }
-                height: fontsize*2
-                width: rectWidth
+
+                Rectangle {
+                    gradient: colorPalette
+                    anchors {
+                        right: parent.right
+                        top: parent.top
+                        bottom: parent.bottom
+                    }
+                    TextInput {
+                        text: quantity * rate
+                        font.underline: true
+                        anchors.centerIn: parent
+                        font.pixelSize: fontsize
+                        onEditingFinished: {
+                            var rate = Number(text)/quantity
+                            if (rate > 0 && rate < 100)
+                                recipeList.model.updateModel(rate,calcMtd)
+                        }
+                    }
+                    height: fontsize*2
+                    width: rectWidth
+                }
+                FlickableMouseArea {
+                    anchors.fill: parent
+                    onLeftFlicked: {
+                        recipeDelegateRow.rectWidth = recipeList.width / 2 - fontsize * 2
+                    }
+                    onRightFlicked: {
+                        recipeDelegateRow.rectWidth = recipeList.width / 2
+                    }
+                }
             }
 
             Rectangle {
+                height: fontsize * 2
+                width: recipeList.width - rectWidth * 2
                 gradient: colorPalette
-                TextInput {
-                    text: quantity
-                    font.underline: true
-                    anchors.centerIn: parent
-                    font.pixelSize: fontsize
-                    onEditingFinished: {
-                        var rate = Number(text)/quantity
-                        if (rate > 0 && rate < 100)
-                            recipeList.model.updateModel(rate,calcMtd)
-                    }
+                Behavior on width { NumberAnimation { duration: root.transTime}}
+                Image {
+                    source: "components/icons/remove.png"
+                    height: Math.min(parent.width, parent.height)
+                    width: height
                 }
-                height: fontsize*2
-                width: rectWidth
             }
         }
     }
-
 }

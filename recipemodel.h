@@ -13,7 +13,8 @@ public:
     enum RecipeRoles {
         NameRole = Qt::UserRole + 1,
         QuantityRole,
-        CalcMtdRole
+        CalcMtdRole,
+        RateRole
     };
 
     QHash<int, QByteArray> roleNames() const;
