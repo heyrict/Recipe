@@ -87,6 +87,7 @@ bool RecipeTitleModel::load()
 
     quint32 serial, recipeSerial, elementSerial;
     QString title, compName, calcMtd;
+    int indexCount = 0;
     double quantity;
 
     in >> serial;
@@ -96,12 +97,17 @@ bool RecipeTitleModel::load()
         while (recipeSerial != ENDRECIPE)
         {
             in >> title;
+            this->newRecipeModel(title);
             in >> elementSerial;
             while (elementSerial != ENDELEMENT)
             {
                 in >> compName >> quantity >> calcMtd;
-                this->newRecipeModel();
+                this->m_recipeModels[indexCount]->addElement(new RecipeElement(compName,quantity,calcMtd));
+                in >> elementSerial;
             }
+            indexCount++;
+            in >> recipeSerial;
         }
+        in >> serial;
     }
 }
