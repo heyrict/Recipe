@@ -19,6 +19,16 @@ Window {
             property int currentModel: -1
             state: "sidebarOnly"
 
+            function calculateFontsize(str, parwidth, goodfontsize) {
+                var re = new RegExp("^[a-zA-Z0-9 ()<>{}:;\"\'-_=+*&^%$#@!~`]\+$")
+                var strlen = re.test(str)?str.length:str.length*2
+                var returns
+                //console.log(str,re.test(str))
+                if (goodfontsize > parwidth / strlen * 1.8)
+                    return  parwidth / strlen * 1.8
+                else return goodfontsize
+            }
+
             states: [
                 State {
                     name: "sidebarOnly"
@@ -259,13 +269,7 @@ Window {
                             enabled: false
                             id: contentsHeaderInput
                             text: recipeList.model.title
-                            font.pixelSize: calculateFontsize(text.length)
-                            function calculateFontsize(stlen) {
-                                var goodFontsize = Math.sqrt(parent.width / stlen) * 10
-                                if (goodFontsize > parent.width / stlen * 2)
-                                    return parent.width / stlen * 2
-                                else return goodFontsize
-                            }
+                            font.pixelSize: root.calculateFontsize(text, parent.width, Math.sqrt(parent.width / text.length) * 8)
                             onEditingFinished: {
                                 recipeList.model.setTitle(text)
                                 contentsHeaderInput.enabled = false
@@ -293,15 +297,6 @@ Window {
                         property var colorPalette: Gradient {
                             GradientStop { position: 0; color: "#eeee04"}
                             GradientStop { position: 1; color: "#ddcc00"}
-                        }
-                        function calculateFontsize(str, parwidth) {
-                            var re = new RegExp("^[a-zA-Z0-9 ()<>{}:;\"\'-_=+*&^%$#@!~`]\+$")
-                            var strlen = re.test(str)?str.length:str.length*2
-                            var returns
-                            //console.log(str,re.test(str))
-                            if (fontsize > parwidth / strlen * 2)
-                                return  parwidth / strlen * 2
-                            else return fontsize
                         }
                         Connections {
                             target: root
@@ -364,7 +359,7 @@ Window {
                                 Text{
                                     text: compName
                                     anchors.centerIn: parent
-                                    font.pixelSize: calculateFontsize(text, parent.width) * 0.95
+                                    font.pixelSize: root.calculateFontsize(text, parent.width, root.generalLength * 0.6)
                                 }
                             }
                             Rectangle {
@@ -376,7 +371,7 @@ Window {
                                                      * 100) / 100
                                     font.underline: true
                                     anchors.centerIn: parent
-                                    font.pixelSize: calculateFontsize(text, parent.width) * 0.95
+                                    font.pixelSize: root.calculateFontsize(text, parent.width, root.generalLength * 0.6)
                                     onEditingFinished: {
                                         var rate = Number(text)/quantity
                                         if (rate > 0 && rate < 100)
