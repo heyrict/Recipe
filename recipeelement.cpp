@@ -2,7 +2,7 @@
 
 RecipeElement::RecipeElement(QString sCompName, double sQuantity, QString sCalcMtd, QObject *parent) : QObject(parent)
 {
-    m_acceptableCalcMtd = {"x1","^2"};
+    m_acceptableCalcMtd = {"x0","x1","^2"};
     setCompName(sCompName);
     setQuantity(sQuantity);
     if (setCalcMtd(sCalcMtd) != 0)

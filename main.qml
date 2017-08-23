@@ -189,6 +189,17 @@ Window {
                             }
                         }
                         Image {
+                            id: refreshEditRecipe
+                            source:"components/icons/refresh.png"
+                            height: parent.height * 0.8
+                            width: height
+                            MouseArea {
+                                anchors.fill: parent
+                                onClicked: { recipeList.model.updateModel(1) }
+                            }
+                        }
+
+                        Image {
                             id: plusEditRecipe
                             source: "components/icons/plus.png"
                             height: parent.height * 0.8
@@ -234,7 +245,13 @@ Window {
                             enabled: false
                             id: contentsHeaderInput
                             text: recipeList.model.title
-                            font.pixelSize: Math.sqrt(parent.width / text.length) * 8
+                            font.pixelSize: calculateFontsize(text.length)
+                            function calculateFontsize(stlen) {
+                                var goodFontsize = Math.sqrt(parent.width / stlen) * 10
+                                if (goodFontsize > parent.width / stlen * 2)
+                                    return parent.width / stlen * 2
+                                else return goodFontsize
+                            }
                             onAccepted: {
                                 recipeList.model.setTitle(text)
                                 contentsHeaderInput.enabled = false
@@ -332,14 +349,20 @@ Window {
                                 width: recipeDelegate.rectWidth
                                 gradient: recipeDelegate.colorPalette
                                 TextInput {
-                                    text: Math.round(quantity * rate * 100) / 100
+                                    text: Math.round(quantity * (calcMtd=="x1"?rate:(calcMtd=="^2"?Math.sqrt(rate):1))
+                                                     * 100) / 100
                                     font.underline: true
                                     anchors.centerIn: parent
                                     font.pixelSize: recipeDelegate.fontsize
                                     onEditingFinished: {
                                         var rate = Number(text)/quantity
                                         if (rate > 0 && rate < 100)
-                                            recipeList.model.updateModel(rate)
+                                        {
+                                            if (calcMtd == "x1")
+                                                recipeList.model.updateModel(rate)
+                                            else if (calcMtd == "^2")
+                                                recipeList.model.updateModel(Math.pow(rate,2))
+                                        }
                                     }
                                 }
                             }
