@@ -3,7 +3,7 @@ import "../common"
 
 Rectangle {
     id: root
-    property int quantity
+    property double quantity
     property string compName
     property string calcMtd
     property int generalLength: height / 10

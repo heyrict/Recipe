@@ -49,6 +49,18 @@ int RecipeTitleModel::newRecipeModel(QString title, bool changeLayout)
     return m_recipeModels.length() - 1;
 }
 
+int RecipeTitleModel::replicateRecipeModel(int index)
+{
+    RecipeModel* recipeModel = m_recipeModels[index];
+
+    emit layoutAboutToBeChanged();
+    RecipeModel* rRecipeModel = new RecipeModel(recipeModel->title(), false);
+    for (RecipeElement* ele : recipeModel->m_elements)
+        rRecipeModel->addElement(ele->compName(),ele->quantity(),ele->calcMtd());
+    m_recipeModels.append(rRecipeModel);
+    emit layoutChanged();
+}
+
 void RecipeTitleModel::refresh()
 {
     emit layoutChanged();

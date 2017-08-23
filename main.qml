@@ -14,9 +14,9 @@ Window {
         anchors.fill: parent
         initialItem: Rectangle {
             id: root
-            anchors.fill: parent
             property int transTime: 300
             property int generalLength: height / 10
+            property int currentModel: -1
             state: "sidebarOnly"
 
             states: [
@@ -200,6 +200,20 @@ Window {
                         }
 
                         Image {
+                            id: replicaEditRecipe
+                            source: "components/icons/copy.png"
+                            height: parent.height * 0.8
+                            width: height
+                            MouseArea {
+                                anchors.fill: parent
+                                onClicked: {
+                                    root.state = "sidebarOnly"
+                                    recipeTitleModel.replicateRecipeModel(root.currentModel)
+                                }
+                            }
+                        }
+
+                        Image {
                             id: plusEditRecipe
                             source: "components/icons/plus.png"
                             height: parent.height * 0.8
@@ -252,7 +266,7 @@ Window {
                                     return parent.width / stlen * 2
                                 else return goodFontsize
                             }
-                            onAccepted: {
+                            onEditingFinished: {
                                 recipeList.model.setTitle(text)
                                 contentsHeaderInput.enabled = false
                                 recipeTitleModel.refresh()
@@ -279,6 +293,15 @@ Window {
                         property var colorPalette: Gradient {
                             GradientStop { position: 0; color: "#eeee04"}
                             GradientStop { position: 1; color: "#ddcc00"}
+                        }
+                        function calculateFontsize(str, parwidth) {
+                            var re = new RegExp("^[a-zA-Z0-9 ()<>{}:;\"\'-_=+*&^%$#@!~`]\+$")
+                            var strlen = re.test(str)?str.length:str.length*2
+                            var returns
+                            //console.log(str,re.test(str))
+                            if (fontsize > parwidth / strlen * 2)
+                                return  parwidth / strlen * 2
+                            else return fontsize
                         }
                         Connections {
                             target: root
@@ -341,7 +364,7 @@ Window {
                                 Text{
                                     text: compName
                                     anchors.centerIn: parent
-                                    font.pixelSize: recipeDelegate.fontsize
+                                    font.pixelSize: calculateFontsize(text, parent.width) * 0.95
                                 }
                             }
                             Rectangle {
@@ -353,7 +376,7 @@ Window {
                                                      * 100) / 100
                                     font.underline: true
                                     anchors.centerIn: parent
-                                    font.pixelSize: recipeDelegate.fontsize
+                                    font.pixelSize: calculateFontsize(text, parent.width) * 0.95
                                     onEditingFinished: {
                                         var rate = Number(text)/quantity
                                         if (rate > 0 && rate < 100)
@@ -489,6 +512,7 @@ Window {
                 }
 
                 onClicked: {
+                    root.currentModel = index
                     recipeList.model = recipeModel
                     root.state = "sidebarInvisible"
                 }

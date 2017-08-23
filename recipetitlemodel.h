@@ -25,6 +25,7 @@ public:
 
 public slots:
     int newRecipeModel(QString title = "New Recipe", bool changeLayout = true);
+    int replicateRecipeModel(int index);
     void deleteRecipeModel(int index);
     void refresh();
     void save();
