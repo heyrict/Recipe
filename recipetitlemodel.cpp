@@ -8,7 +8,8 @@
 
 RecipeTitleModel::RecipeTitleModel()
 {
-
+    connect(this,SIGNAL(layoutChanged(QList<QPersistentModelIndex>,
+                                      QAbstractItemModel::LayoutChangeHint)),this,SLOT(save()));
 }
 
 QHash<int, QByteArray> RecipeTitleModel::roleNames() const
@@ -37,12 +38,14 @@ int RecipeTitleModel::rowCount(const QModelIndex &parent) const
     return m_recipeModels.length();
 }
 
-void RecipeTitleModel::newRecipeModel(QString title)
+void RecipeTitleModel::newRecipeModel(QString title, bool changeLayout)
 {
-    RecipeModel* recipeModel = new RecipeModel("New Recipe");
+    RecipeModel* recipeModel = new RecipeModel(title);
+
+    connect(recipeModel,SIGNAL(layoutChanged(QList<QPersistentModelIndex>,QAbstractItemModel::LayoutChangeHint)),this,SLOT(save()));
 
     m_recipeModels.append(recipeModel);
-    emit layoutChanged();
+    if (changeLayout) emit layoutChanged();
 }
 
 void RecipeTitleModel::refresh()
@@ -52,12 +55,13 @@ void RecipeTitleModel::refresh()
 
 void RecipeTitleModel::deleteRecipeModel(int index)
 {
+    qDebug() << index;
     if (index < 0 || index > m_recipeModels.length())
         return;
 
-    emit layoutAboutToBeChanged();
-    m_recipeModels.removeAt(index);
-    emit layoutChanged();
+    //emit layoutAboutToBeChanged();
+    //m_recipeModels.removeAt(index);
+    //emit layoutChanged();
 }
 
 void RecipeTitleModel::save()
@@ -70,12 +74,13 @@ void RecipeTitleModel::save()
     {
         out << STARTRECIPE;
         out << i->title();
-        out << STARTELEMENT;
-        for (RecipeElement *j : i->m_elements)
-            out << j->compName() << j->quantity() << j->calcMtd();
+        if (m_recipeModels.length() == 0)
+            out << ENDELEMENT;
+        else for (RecipeElement *j : i->m_elements)
+                out << STARTELEMENT << j->compName() << j->quantity() << j->calcMtd();
         out << ENDELEMENT;
     }
-    out << ENDMODEL;
+    out << ENDRECIPE;
 }
 
 bool RecipeTitleModel::load()
@@ -91,23 +96,27 @@ bool RecipeTitleModel::load()
     double quantity;
 
     in >> serial;
-    while (serial != ENDMODEL)
-    {
+    qDebug() << STARTMODEL << STARTRECIPE << STARTELEMENT;
+    qDebug() << ENDMODEL << ENDRECIPE << ENDELEMENT;
+    if (serial != STARTMODEL) return false;
+    else {
         in >> recipeSerial;
-        while (recipeSerial != ENDRECIPE)
+        while (recipeSerial == STARTRECIPE)
         {
+            indexCount = 0;
             in >> title;
-            this->newRecipeModel(title);
+            this->newRecipeModel(title, false);
             in >> elementSerial;
-            while (elementSerial != ENDELEMENT)
+            while (elementSerial == STARTELEMENT)
             {
                 in >> compName >> quantity >> calcMtd;
-                this->m_recipeModels[indexCount]->addElement(new RecipeElement(compName,quantity,calcMtd));
+                this->m_recipeModels[indexCount]->addElement(new RecipeElement(compName,quantity,calcMtd), false);
                 in >> elementSerial;
+                if (elementSerial == ENDELEMENT) break;
             }
             indexCount++;
             in >> recipeSerial;
         }
-        in >> serial;
     }
+    return true;
 }

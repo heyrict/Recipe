@@ -161,19 +161,6 @@ Window {
                         padding: height * 0.1
                         spacing: height * 0.15
                         Image {
-                            id: deleteEditRecipe
-                            source: "components/icons/delete.png"
-                            height: parent.height * 0.8
-                            width: height
-                            MouseArea {
-                                anchors.fill: parent
-                                onClicked: {
-                                    root.state = "sidebarOnly"
-                                    recipeTitleModel.deleteRecipeModel(recipeList.currentIndex)
-                                }
-                            }
-                        }
-                        Image {
                             id: confirmEditRecipe
                             source: "components/icons/confirm.png"
                             height: parent.height * 0.8
@@ -194,7 +181,6 @@ Window {
                                 anchors.fill: parent
                                 onClicked: {
                                     recipeList.model.addElement()
-                                    recipeTitleModel.save()
                                 }
                             }
                         }
@@ -213,17 +199,16 @@ Window {
 
                     header: Item {
                         width: parent.width
-                        height: contentsHeaderInput.height
+                        height: contentsHeaderInput.font.pixelSize * 1.2
                         TextInput {
                             enabled: false
                             id: contentsHeaderInput
                             text: recipeList.model.title
-                            font.pixelSize: root.generalLength * 0.9
+                            font.pixelSize: Math.sqrt(parent.width / text.length) * 8
                             onAccepted: {
                                 recipeList.model.setTitle(text)
                                 contentsHeaderInput.enabled = false
                                 recipeTitleModel.refresh()
-                                recipeTitleModel.save()
                             }
                         }
                         FlickableMouseArea {
@@ -264,7 +249,6 @@ Window {
                                     anchors.fill: parent
                                     onClicked: {
                                         recipeList.model.removeElement(index)
-                                        recipeTitleModel.save()
                                     }
                                 }
                             }
@@ -288,7 +272,6 @@ Window {
                                     function saveElement(obj) {
                                         console.log(index,obj.compName,obj.quantity,obj.calcMtd)
                                         recipeList.model.updateElement(index,obj.compName,obj.quantity,obj.calcMtd)
-                                        recipeTitleModel.save()
                                         //compName = elementObj.compName
                                         //quantity = elementObj.quantity
                                         //calcMtd = elementObj.calcMtd
@@ -418,44 +401,53 @@ Window {
 
         Component {
             id: recipeTitleDelegate
-            Row {
+            SwipeDelegate {
+                id: recipeTitleSwipeDelegate
                 property int fontsize: root.height / 20
                 property int rectWidth: recipeTitleList.width
-                property var colorPalette: Gradient {
-                    GradientStop { position: 0; color: "#ccccee"}
-                    GradientStop { position: 1; color: "#aaaaee"}
+                onClicked: {
+                    recipeList.model = recipeModel
+                    root.state = "sidebarInvisible"
                 }
+                background: Rectangle{color:"#00000000";anchors.fill: parent}
+                contentItem:Row {
 
-                leftPadding: rectWidth * 0.05
-                rightPadding: rectWidth * 0.05
+                    leftPadding: recipeTitleSwipeDelegate.rectWidth * 0.05
+                    rightPadding: recipeTitleSwipeDelegate.rectWidth * 0.05
 
-                Rectangle {
-                    width: rectWidth * 0.9
-                    height: fontsize * 2
-                    color: "lightcyan"
-                    gradient: colorPalette
-                    radius: fontsize
-                    TextInput {
-                        id: recipeTitleDelegateText
-                        anchors.centerIn: parent
-                        text: title
-                        //font.pixelSize: fontsize
-                        font.pixelSize: parent.width<fontsize*title.length?parent.width/title.length:fontsize
-                        visible: parent.width < 5 ? false : true
-                        onEditingFinished: {
-                            focus = false
-                            recipeModel.title = text
+                    Rectangle {
+                        id: recipeTitleSwipeRect
+                        width: recipeTitleSwipeDelegate.rectWidth * 0.9
+                        height: fontsize * 2
+                        color: "lightcyan"
+                        gradient: Gradient {
+                            GradientStop { position: 0; color: "#ccccee"}
+                            GradientStop { position: 1; color: "#aaaaee"}
+                        }
+                        radius: fontsize
+                        Text {
+                            id: recipeTitleDelegateText
+                            anchors.centerIn: parent
+                            text: title
+                            //font.pixelSize: fontsize
+                            font.pixelSize: parent.width<fontsize/2*title.length?parent.width/title.length*2:recipeTitleSwipeDelegate.fontsize
+                            visible: parent.width < 5 ? false : true
                         }
                     }
-                    FlickableMouseArea {
+                }
+
+                swipe.right: Image {
+                    id: deleteEditRecipe
+                    source: "components/icons/delete.png"
+                    height: parent.height * 0.6
+                    width: height
+                    anchors.left: parent.contentItem.right
+                    anchors.top: parent.contentItem.top
+                    MouseArea {
                         anchors.fill: parent
-                        onShortPressed: {
-                            recipeList.model = recipeModel
-                            root.state = "sidebarInvisible"
-                        }
-                        onLongPressed: {
-                            recipeTitleDelegateText.selectAll()
-                            recipeTitleDelegateText.forceActiveFocus()
+                        onClicked: {
+                            root.state = "sidebarOnly"
+                            recipeTitleModel.deleteRecipeModel(index)
                         }
                     }
                 }

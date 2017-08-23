@@ -73,6 +73,7 @@ Rectangle {
             anchors.right: parent.right
             name: "compName"
             value: root.compName
+            KeyNavigation.tab: quantityInput
         }
         LabeledTextInput {
             id: quantityInput
@@ -80,6 +81,7 @@ Rectangle {
             anchors.right: parent.right
             name: "quantity"
             value: root.quantity
+            KeyNavigation.tab: calcMtdInput
         }
         LabeledTextInput {
             id: calcMtdInput

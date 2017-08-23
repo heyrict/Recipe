@@ -45,11 +45,11 @@ QVariant RecipeModel::data(const QModelIndex &index, int role) const
     else return QVariant();
 }
 
-int RecipeModel::addElement(RecipeElement* element)
+int RecipeModel::addElement(RecipeElement* element, bool changeLayout)
 {
-    emit layoutAboutToBeChanged();
+    if (changeLayout) emit layoutAboutToBeChanged();
     m_elements.append(element);
-    emit layoutChanged();
+    if (changeLayout) emit layoutChanged();
 }
 
 void RecipeModel::updateModel(double rate)

@@ -14,7 +14,8 @@ int main(int argc, char *argv[])
     //recipeModel.addElement(new RecipeElement("butter",100));
 
     RecipeTitleModel recipes;
-    recipes.newRecipeModel();
+    bool loadSukcd = recipes.load();
+    if (!loadSukcd) recipes.newRecipeModel();
 
     QQmlApplicationEngine engine;
     QQmlContext* ctxt = engine.rootContext();
