@@ -31,7 +31,7 @@ Window {
                     name: "sidebarToggled"
                     PropertyChanges {
                         target: sidebar
-                        width: root.width>600?root.width*0.382:root.width
+                        width: root.width>root.generalLength * 10?root.width*0.382:root.width
                         opacity: 100
                     }
                     PropertyChanges {
@@ -88,25 +88,42 @@ Window {
                             name: "editContents"
                             PropertyChanges {
                                 target: contentsToolbar
-                                visible: false
+                                opacity: 0.0
                             }
                             PropertyChanges {
                                 target: contentsEditToolbar
-                                visible: true
+                                opacity: 1.0
                             }
                         },
                         State {
                             name: "normalContents"
                             PropertyChanges {
                                 target: contentsToolbar
-                                visible: true
+                                opacity: 1.0
                             }
                             PropertyChanges {
                                 target: contentsEditToolbar
-                                visible: false
+                                opacity: 0.0
                             }
                         }
                     ]
+                    transitions: [Transition {
+                            from: "editContents"
+                            to: "normalContents"
+                            SequentialAnimation {
+                                NumberAnimation {target: contentsEditToolbar; property: "opacity"; duration: root.transTime}
+                                NumberAnimation {target: contentsToolbar; property: "opacity"; duration: root.transTime}
+                            }
+                        },
+                        Transition {
+                            SequentialAnimation {
+                                NumberAnimation {target: contentsToolbar; property: "opacity"; duration: root.transTime}
+                                NumberAnimation {target: contentsEditToolbar; property: "opacity"; duration: root.transTime}
+                            }
+                        }
+                    ]
+
+                    Connections { target: root; onStateChanged: {contentsBanner.state = "normalContents"} }
 
                     Image {
                         id: menuIcon
@@ -122,13 +139,12 @@ Window {
                             anchors.fill: parent
                             onClicked: { root.state = "sidebarToggled" }
                         }
-                        Behavior on opacity { NumberAnimation { duration: root.transTime }}
                     }
 
                     Row {
                         id: contentsToolbar
                         layoutDirection: Qt.RightToLeft
-                        visible: true
+                        visible: opacity != 0
                         anchors {
                             right: parent.right
                             top: parent.top
@@ -152,7 +168,7 @@ Window {
                     Row {
                         id: contentsEditToolbar
                         layoutDirection: Qt.RightToLeft
-                        visible: false
+                        visible: opacity != 0
                         anchors {
                             right: parent.right
                             top: parent.top
@@ -180,8 +196,22 @@ Window {
                             MouseArea {
                                 anchors.fill: parent
                                 onClicked: {
-                                    recipeList.model.addElement()
+                                    var addElementDialog = Qt.createComponent("components/RenameRecipeDialog.qml")
+                                    var object = addElementDialog.createObject()
+                                    object.returned.connect(stack.pop)
+                                    object.confirmed.connect(newElement)
+                                    object.compName = "配料"
+                                    object.quantity = 1
+                                    object.calcMtd = "x1"
+                                    stack.push(object)
                                 }
+                                function newElement(obj) {
+                                    console.log(obj.compName,obj.quantity,obj.calcMtd)
+                                    recipeList.model.addElement(obj.compName,obj.quantity,obj.calcMtd)
+                                }
+                                //onClicked: {
+                                //    recipeList.model.addElement()
+                                //}
                             }
                         }
                     }
@@ -233,6 +263,11 @@ Window {
                             GradientStop { position: 0; color: "#eeee04"}
                             GradientStop { position: 1; color: "#ddcc00"}
                         }
+                        Connections {
+                            target: root
+                            onStateChanged: swipe.close()
+                        }
+
                         swipe.right: Rectangle {
                             height: fontsize * 2
                             width: height * 2 + 10
@@ -297,14 +332,14 @@ Window {
                                 width: recipeDelegate.rectWidth
                                 gradient: recipeDelegate.colorPalette
                                 TextInput {
-                                    text: quantity * rate
+                                    text: Math.round(quantity * rate * 100) / 100
                                     font.underline: true
                                     anchors.centerIn: parent
                                     font.pixelSize: recipeDelegate.fontsize
                                     onEditingFinished: {
                                         var rate = Number(text)/quantity
                                         if (rate > 0 && rate < 100)
-                                            recipeList.model.updateModel(rate,calcMtd)
+                                            recipeList.model.updateModel(rate)
                                     }
                                 }
                             }
@@ -365,8 +400,8 @@ Window {
 
                 Rectangle {
                     id: sideToolbar
-                    height: parent.height / 10
-                    width: parent.height / 10
+                    height: root.generalLength
+                    width: root.generalLength
                     anchors {
                         left: parent.left
                         bottom: parent.bottom
@@ -378,7 +413,11 @@ Window {
                     }
 
                     Row {
-                        anchors.fill: parent
+                        anchors {
+                            left: parent.left
+                            top: parent.top
+                            bottom: parent.bottom
+                        }
                         spacing: height * 0.2
                         padding: height * 0.05
                         Image {
@@ -395,6 +434,22 @@ Window {
                             }
                         }
                     }
+                    Row {
+                        anchors {
+                            right: parent.right
+                            top: parent.top
+                            bottom: parent.bottom
+                        }
+                        spacing: height * 0.2
+                        padding: height * 0.05
+                        Image {
+                            id: exit
+                            source: "components/icons/exit.png"
+                            height: Math.min(sideToolbar.height,sideToolbar.width) * 0.9
+                            width: height
+                            MouseArea { anchors.fill: parent; onClicked: {close()}}
+                        }
+                    }
                 }
             }
         }
@@ -405,16 +460,18 @@ Window {
                 id: recipeTitleSwipeDelegate
                 property int fontsize: root.height / 20
                 property int rectWidth: recipeTitleList.width
+                Connections {
+                    target: root
+                    onStateChanged: swipe.close()
+                }
+
                 onClicked: {
                     recipeList.model = recipeModel
                     root.state = "sidebarInvisible"
                 }
-                background: Rectangle{color:"#00000000";anchors.fill: parent}
+                background: Rectangle{color:"#00000000"}
                 contentItem:Row {
-
                     leftPadding: recipeTitleSwipeDelegate.rectWidth * 0.05
-                    rightPadding: recipeTitleSwipeDelegate.rectWidth * 0.05
-
                     Rectangle {
                         id: recipeTitleSwipeRect
                         width: recipeTitleSwipeDelegate.rectWidth * 0.9

@@ -38,7 +38,7 @@ int RecipeTitleModel::rowCount(const QModelIndex &parent) const
     return m_recipeModels.length();
 }
 
-void RecipeTitleModel::newRecipeModel(QString title, bool changeLayout)
+int RecipeTitleModel::newRecipeModel(QString title, bool changeLayout)
 {
     RecipeModel* recipeModel = new RecipeModel(title);
 
@@ -46,6 +46,7 @@ void RecipeTitleModel::newRecipeModel(QString title, bool changeLayout)
 
     m_recipeModels.append(recipeModel);
     if (changeLayout) emit layoutChanged();
+    return m_recipeModels.length() - 1;
 }
 
 void RecipeTitleModel::refresh()
@@ -55,13 +56,12 @@ void RecipeTitleModel::refresh()
 
 void RecipeTitleModel::deleteRecipeModel(int index)
 {
-    qDebug() << index;
     if (index < 0 || index > m_recipeModels.length())
         return;
 
-    //emit layoutAboutToBeChanged();
-    //m_recipeModels.removeAt(index);
-    //emit layoutChanged();
+    emit layoutAboutToBeChanged();
+    m_recipeModels.removeAt(index);
+    emit layoutChanged();
 }
 
 void RecipeTitleModel::save()
@@ -103,14 +103,13 @@ bool RecipeTitleModel::load()
         in >> recipeSerial;
         while (recipeSerial == STARTRECIPE)
         {
-            indexCount = 0;
             in >> title;
             this->newRecipeModel(title, false);
             in >> elementSerial;
             while (elementSerial == STARTELEMENT)
             {
                 in >> compName >> quantity >> calcMtd;
-                this->m_recipeModels[indexCount]->addElement(new RecipeElement(compName,quantity,calcMtd), false);
+                this->m_recipeModels[indexCount]->addElement(compName, quantity, calcMtd, false);
                 in >> elementSerial;
                 if (elementSerial == ENDELEMENT) break;
             }

@@ -6,6 +6,7 @@ Rectangle {
     property int quantity
     property string compName
     property string calcMtd
+    property int generalLength: height / 10
 
     signal returned
     signal confirmed(var elementObj)
@@ -17,7 +18,7 @@ Rectangle {
             left: parent.left
             right: parent.right
         }
-        height: root.height / 10
+        height: root.generalLength
         color: "#779077"
         gradient: Gradient {
             GradientStop { position: 0; color: Qt.lighter(contentsBanner.color)}
@@ -71,7 +72,9 @@ Rectangle {
             id: compNameInput
             anchors.left: parent.left
             anchors.right: parent.right
-            name: "compName"
+            height: root.generalLength
+            fontsize: root.generalLength / 2
+            name: "配料"
             value: root.compName
             KeyNavigation.tab: quantityInput
         }
@@ -79,7 +82,9 @@ Rectangle {
             id: quantityInput
             anchors.left: parent.left
             anchors.right: parent.right
-            name: "quantity"
+            height: root.generalLength
+            fontsize: root.generalLength / 2
+            name: "数量"
             value: root.quantity
             KeyNavigation.tab: calcMtdInput
         }
@@ -87,7 +92,9 @@ Rectangle {
             id: calcMtdInput
             anchors.left: parent.left
             anchors.right: parent.right
-            name: "calcMtd"
+            height: root.generalLength
+            fontsize: root.generalLength / 2
+            name: "计数"
             value: root.calcMtd
         }
     }

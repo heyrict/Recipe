@@ -24,7 +24,7 @@ public:
     bool load();
 
 public slots:
-    void newRecipeModel(QString title = "New Recipe", bool changeLayout = true);
+    int newRecipeModel(QString title = "New Recipe", bool changeLayout = true);
     void deleteRecipeModel(int index);
     void refresh();
     void save();
